@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPK TOPSIS — Sistem Penunjang Keputusan</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --surface: #131929;
+    --card: #1a2236;
+    --border: #2a3a5c;
+    --accent: #00e5ff;
+    --accent2: #7c3aed;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --rank1: #ffd700;
+    --rank2: #c0c0c0;
+    --rank3: #cd7f32;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0d1b2e 0%, #1a1040 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 13px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  header h1 { font-size: 20px; font-weight: 700; }
+  header span { font-size: 13px; color: var(--muted); display: block; margin-top: 2px; }
+
+  .header-badge {
+    margin-left: auto;
+    background: rgba(0,229,255,0.1);
+    border: 1px solid rgba(0,229,255,0.3);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* ── LAYOUT ── */
+  main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* ── STEP PROGRESS ── */
+  .steps {
+    display: flex;
+    gap: 0;
+    margin-bottom: 40px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .step {
+    flex: 1;
+    padding: 14px 12px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+  .step:last-child { border-right: none; }
+  .step.active {
+    background: linear-gradient(180deg, rgba(0,229,255,0.12), rgba(0,229,255,0.04));
+    color: var(--accent);
+  }
+  .step.done { color: var(--green); }
+  .step-num {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .step.active .step-num { color: var(--accent); }
+  .step.done .step-num { color: var(--green); }
+
+  /* ── SECTIONS ── */
+  .section { display: none; }
+  .section.visible { display: block; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title::before {
+    content: '';
+    display: block;
+    width: 3px; height: 16px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+
+  input[type=text], input[type=number], select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'Sora', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    font-family: 'Sora', sans-serif;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #0099cc);
+    color: #000;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,229,255,0.3); }
+  .btn-secondary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-secondary:hover { border-color: var(--accent); }
+  .btn-danger {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: var(--red);
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+  .btn-sm {
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.2);
+    color: var(--accent);
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  .btn-row {
+    display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;
+  }
+
+  /* ── CRITERIA TABLE ── */
+  .criteria-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .criteria-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 40px;
+    gap: 10px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    transition: border-color 0.2s;
+  }
+  .criteria-item:hover { border-color: var(--border); }
+
+  /* ── DECISION MATRIX ── */
+  .matrix-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: rgba(0,229,255,0.08);
+    color: var(--accent);
+    padding: 10px 14px;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    border: 1px solid var(--border);
+  }
+  td {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    text-align: center;
+    color: var(--text);
+  }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  td input[type=number] { padding: 6px 8px; text-align: center; font-family: 'Space Mono', monospace; }
+
+  /* ── RESULT ── */
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .result-card:hover { transform: translateY(-2px); }
+  .result-card.rank1 { border-color: var(--rank1); background: rgba(255,215,0,0.04); }
+  .result-card.rank2 { border-color: var(--rank2); background: rgba(192,192,192,0.04); }
+  .result-card.rank3 { border-color: var(--rank3); background: rgba(205,127,50,0.04); }
+
+  .rank-badge {
+    position: absolute; top: 12px; right: 12px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px; font-weight: 700;
+  }
+  .rank1 .rank-badge { background: var(--rank1); color: #000; }
+  .rank2 .rank-badge { background: var(--rank2); color: #000; }
+  .rank3 .rank-badge { background: var(--rank3); color: #fff; }
+  .rank-other .rank-badge { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+
+  .alt-name { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .vi-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .vi-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* result table */
+  .result-table th { background: rgba(124,58,237,0.12); color: #a78bfa; }
+  .winner-row td { background: rgba(255,215,0,0.06); color: var(--rank1); font-weight: 600; }
+
+  /* ── MATRIX DISPLAY ── */
+  .matrix-section { margin-bottom: 20px; }
+  .matrix-section h4 { font-size: 13px; color: var(--muted); margin-bottom: 10px; font-weight: 400; }
+
+  /* ── INFO BOX ── */
+  .info-box {
+    background: rgba(0,229,255,0.05);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    line-height: 1.7;
+  }
+  .info-box strong { color: var(--accent); }
+
+  /* ── EMPTY STATE ── */
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-icon { font-size: 48px; margin-bottom: 16px; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 32px; right: 32px;
+    background: var(--green);
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  /* chip */
+  .chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+  }
+  .chip-benefit { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+  .chip-cost { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+
+  @media (max-width: 640px) {
+    header { padding: 16px; }
+    main { padding: 20px 12px 60px; }
+    .row, .row3 { grid-template-columns: 1fr; }
+    .criteria-item { grid-template-columns: 1fr 1fr; }
+    .steps { overflow-x: auto; }
+    .step { min-width: 80px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">SPK</div>
+  <div>
+    <h1>TOPSIS Decision System</h1>
+    <span>Sistem Penunjang Keputusan — Metode TOPSIS</span>
+  </div>
+  <div class="header-badge">MADM v1.0</div>
+</header>
+
+<main>
+
+  <!-- STEP BAR -->
+  <div class="steps">
+    <div class="step active" onclick="goStep(1)" id="s1">
+      <span class="step-num">01</span>Setup
+    </div>
+    <div class="step" onclick="goStep(2)" id="s2">
+      <span class="step-num">02</span>Kriteria
+    </div>
+    <div class="step" onclick="goStep(3)" id="s3">
+      <span class="step-num">03</span>Alternatif
+    </div>
+    <div class="step" onclick="goStep(4)" id="s4">
+      <span class="step-num">04</span>Nilai
+    </div>
+    <div class="step" onclick="goStep(5)" id="s5">
+      <span class="step-num">05</span>Hasil
+    </div>
+  </div>
+
+  <!-- STEP 1: SETUP -->
+  <div class="section visible" id="sec1">
+    <div class="card">
+      <div class="card-title">Konfigurasi Sistem</div>
+      <div class="info-box">
+        <strong>Apa itu TOPSIS?</strong><br>
+        TOPSIS (Technique for Order Preference by Similarity to Ideal Solution) adalah metode pengambilan keputusan multi-kriteria. Alternatif terbaik dipilih berdasarkan jarak terpendek ke solusi ideal positif dan terjauh dari solusi ideal negatif.
+      </div>
+      <div class="row">
+        <div>
+          <label>Nama Sistem / Kasus</label>
+          <input type="text" id="systemName" placeholder="cth: Pemilihan Guru Berprestasi" />
+        </div>
+        <div>
+          <label>Deskripsi Singkat</label>
+          <input type="text" id="systemDesc" placeholder="cth: Menentukan guru terbaik di sekolah" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Jumlah Kriteria</label>
+          <input type="number" id="numCriteria" min="2" max="10" placeholder="cth: 5" />
+        </div>
+        <div>
+          <label>Jumlah Alternatif</label>
+          <input type="number" id="numAlternatives" min="2" max="15" placeholder="cth: 4" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="goStep(2)">Lanjut → Isi Kriteria</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: KRITERIA -->
+  <div class="section" id="sec2">
+    <div class="card">
+      <div class="card-title">Definisi Kriteria</div>
+      <div class="info-box">
+        <strong>Bobot</strong> menunjukkan tingkat kepentingan kriteria (akan dinormalisasi otomatis).<br>
+        <strong>Benefit</strong> = nilai lebih besar lebih baik. &nbsp;&nbsp;<strong>Cost</strong> = nilai lebih kecil lebih baik.
+      </div>
+      <div class="criteria-list" id="criteriaList"></div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goStep(1)">← Kembali</button>
+        <button class="btn btn-primary" onclick="goStep(3)">Lanjut → Isi Alternatif</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: ALTERNATIF -->
+  <div class="section" id="sec3">
+    <div class="card">
+      <div class="card-title">Definisi Alternatif</div>
+      <div class="criteria-list" id="altList"></div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goStep(2)">← Kembali</button>
+        <button class="btn btn-primary" onclick="goStep(4)">Lanjut → Isi Nilai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: MATRIKS KEPUTUSAN -->
+  <div class="section" id="sec4">
+    <div class="card">
+      <div class="card-title">Matriks Keputusan</div>
+      <div class="info-box">Isi nilai setiap alternatif untuk setiap kriteria. Gunakan skala yang konsisten (mis: 1–5 atau nilai nyata).</div>
+      <div class="matrix-wrap" id="decisionMatrix"></div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goStep(3)">← Kembali</button>
+        <button class="btn btn-primary" onclick="calculate()">⚡ Hitung TOPSIS</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5: HASIL -->
+  <div class="section" id="sec5">
+    <div class="card">
+      <div class="card-title">Hasil Perankingan</div>
+      <div id="resultCards" class="result-grid"></div>
+
+      <div class="card-title" style="margin-top:24px">Tabel Lengkap</div>
+      <div class="matrix-wrap">
+        <table id="resultTable"></table>
+      </div>
+
+      <div class="card-title" style="margin-top:24px">Proses Perhitungan</div>
+      <div id="calcSteps"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goStep(4)">← Edit Nilai</button>
+        <button class="btn btn-primary" onclick="printResult()">🖨 Cetak / Export</button>
+        <button class="btn btn-sm" onclick="goStep(1)">↺ Reset</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast">✓ Berhasil!</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────
+let state = {
+  name: '',
+  desc: '',
+  nC: 5,
+  nA: 4,
+  criteria: [],   // {name, weight, type}
+  alternatives: [], // {name}
+  matrix: []      // [alt][crit]
+};
+
+let currentStep = 1;
+
+// ─── NAVIGATION ──────────────────────────────────────
+function goStep(n) {
+  if (n > 1) collectStep(currentStep);
+
+  document.querySelectorAll('.section').forEach((s,i) => {
+    s.classList.toggle('visible', i+1 === n);
+  });
+  document.querySelectorAll('.step').forEach((s,i) => {
+    s.classList.remove('active','done');
+    if (i+1 === n) s.classList.add('active');
+    if (i+1 < n) s.classList.add('done');
+  });
+
+  if (n === 2) buildCriteriaForm();
+  if (n === 3) buildAltForm();
+  if (n === 4) buildMatrixForm();
+
+  currentStep = n;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ─── COLLECT DATA ─────────────────────────────────────
+function collectStep(n) {
+  if (n === 1) {
+    state.name = document.getElementById('systemName').value || 'SPK TOPSIS';
+    state.desc = document.getElementById('systemDesc').value;
+    state.nC = parseInt(document.getElementById('numCriteria').value) || 5;
+    state.nA = parseInt(document.getElementById('numAlternatives').value) || 4;
+  }
+  if (n === 2) {
+    state.criteria = [];
+    for (let i = 0; i < state.nC; i++) {
+      state.criteria.push({
+        name: document.getElementById(`cname_${i}`)?.value || `C${i+1}`,
+        weight: parseFloat(document.getElementById(`cweight_${i}`)?.value) || 1,
+        type: document.getElementById(`ctype_${i}`)?.value || 'benefit'
+      });
+    }
+  }
+  if (n === 3) {
+    state.alternatives = [];
+    for (let i = 0; i < state.nA; i++) {
+      state.alternatives.push({
+        name: document.getElementById(`aname_${i}`)?.value || `A${i+1}`
+      });
+    }
+  }
+  if (n === 4) {
+    state.matrix = [];
+    for (let i = 0; i < state.nA; i++) {
+      state.matrix[i] = [];
+      for (let j = 0; j < state.nC; j++) {
+        state.matrix[i][j] = parseFloat(document.getElementById(`m_${i}_${j}`)?.value) || 0;
+      }
+    }
+  }
+}
+
+// ─── BUILD FORMS ──────────────────────────────────────
+const defaultCriteria = [];
+const defaultAlts = [];
+
+function buildCriteriaForm() {
+  const el = document.getElementById('criteriaList');
+  el.innerHTML = '';
+  for (let i = 0; i < state.nC; i++) {
+    const prev = state.criteria[i] || {};
+    const div = document.createElement('div');
+    div.className = 'criteria-item';
+    div.innerHTML = `
+      <div>
+        <label>Nama Kriteria C${i+1}</label>
+        <input type="text" id="cname_${i}" value="${prev.name || ''}" placeholder="Nama kriteria"/>
+      </div>
+      <div>
+        <label>Bobot</label>
+        <input type="number" id="cweight_${i}" value="${prev.weight || 1}" min="1" max="10" />
+      </div>
+      <div>
+        <label>Tipe</label>
+        <select id="ctype_${i}">
+          <option value="benefit" ${(prev.type||'benefit')==='benefit'?'selected':''}>Benefit ↑</option>
+          <option value="cost" ${prev.type==='cost'?'selected':''}>Cost ↓</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end;padding-bottom:2px">
+        <span id="chip_${i}" class="chip chip-benefit">B</span>
+      </div>
+    `;
+    el.appendChild(div);
+    // update chip on change
+    setTimeout(() => {
+      const sel = document.getElementById(`ctype_${i}`);
+      const chip = document.getElementById(`chip_${i}`);
+      const update = () => {
+        if (sel.value==='benefit') { chip.textContent='B'; chip.className='chip chip-benefit'; }
+        else { chip.textContent='C'; chip.className='chip chip-cost'; }
+      };
+      sel.addEventListener('change', update);
+      update();
+    }, 0);
+  }
+}
+
+function buildAltForm() {
+  const el = document.getElementById('altList');
+  el.innerHTML = '';
+  for (let i = 0; i < state.nA; i++) {
+    const prev = state.alternatives[i] || {};
+    const div = document.createElement('div');
+    div.className = 'criteria-item';
+    div.style.gridTemplateColumns = '1fr';
+    div.innerHTML = `
+      <div>
+        <label>Nama Alternatif A${i+1}</label>
+        <input type="text" id="aname_${i}" value="${prev.name || ''}" placeholder="Nama alternatif"/>
+      </div>
+    `;
+    el.appendChild(div);
+  }
+}
+
+function buildMatrixForm() {
+  collectStep(2); collectStep(3);
+  const el = document.getElementById('decisionMatrix');
+  let html = '<table><thead><tr><th>Alternatif</th>';
+  state.criteria.forEach((c,j) => {
+    html += `<th>C${j+1}<br><small style="color:var(--muted);font-family:sans-serif;font-size:10px">${c.name}</small></th>`;
+  });
+  html += '</tr></thead><tbody>';
+  for (let i = 0; i < state.nA; i++) {
+    html += `<tr><td style="text-align:left;font-weight:600;color:var(--accent);font-family:'Space Mono',monospace">${state.alternatives[i]?.name || 'A'+(i+1)}</td>`;
+    for (let j = 0; j < state.nC; j++) {
+      const val = (state.matrix[i] && state.matrix[i][j]) || '';
+      html += `<td><input type="number" id="m_${i}_${j}" value="${val}" min="0" step="0.01" /></td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+// ─── TOPSIS CALCULATION ───────────────────────────────
+function calculate() {
+  collectStep(4);
+  const nA = state.nA, nC = state.nC;
+  const X = state.matrix;
+  const C = state.criteria;
+
+  // 1. Normalisasi bobot
+  const wSum = C.reduce((s,c) => s + c.weight, 0);
+  const W = C.map(c => c.weight / wSum);
+
+  // 2. Matriks ternormalisasi: rij = xij / sqrt(sum xij^2)
+  const R = Array.from({length:nA}, () => Array(nC).fill(0));
+  for (let j = 0; j < nC; j++) {
+    const denom = Math.sqrt(X.reduce((s,row) => s + row[j]**2, 0));
+    for (let i = 0; i < nA; i++) R[i][j] = denom ? X[i][j]/denom : 0;
+  }
+
+  // 3. Matriks ternormalisasi terbobot: yij = wj * rij
+  const Y = R.map(row => row.map((v,j) => v * W[j]));
+
+  // 4. Solusi ideal positif & negatif
+  const Apos = [], Aneg = [];
+  for (let j = 0; j < nC; j++) {
+    const col = Y.map(row => row[j]);
+    if (C[j].type === 'benefit') {
+      Apos[j] = Math.max(...col);
+      Aneg[j] = Math.min(...col);
+    } else {
+      Apos[j] = Math.min(...col);
+      Aneg[j] = Math.max(...col);
+    }
+  }
+
+  // 5. Jarak ke ideal positif & negatif
+  const Dpos = Y.map(row => Math.sqrt(row.reduce((s,v,j) => s + (v - Apos[j])**2, 0)));
+  const Dneg = Y.map(row => Math.sqrt(row.reduce((s,v,j) => s + (v - Aneg[j])**2, 0)));
+
+  // 6. Nilai preferensi Vi
+  const Vi = Dpos.map((d,i) => Dneg[i] / (d + Dneg[i]) || 0);
+
+  // 7. Ranking
+  const ranked = Vi.map((v,i) => ({idx:i, vi:v})).sort((a,b) => b.vi - a.vi);
+  const rankOf = Array(nA);
+  ranked.forEach((r,pos) => { rankOf[r.idx] = pos+1; });
+
+  // ── RENDER ────────────────────────────────────────
+  renderCards(Vi, rankOf);
+  renderResultTable(X, R, Y, Apos, Aneg, Dpos, Dneg, Vi, rankOf, W);
+  renderCalcSteps(R, Y, Apos, Aneg, Dpos, Dneg, Vi, W);
+
+  goStep(5);
+  showToast('Perhitungan selesai!');
+}
+
+function renderCards(Vi, rankOf) {
+  const el = document.getElementById('resultCards');
+  const items = Vi.map((v,i) => ({i,v,rank:rankOf[i]})).sort((a,b) => a.rank - b.rank);
+  el.innerHTML = items.map(({i,v,rank}) => {
+    const cls = rank===1?'rank1':rank===2?'rank2':rank===3?'rank3':'rank-other';
+    const medal = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
+    return `
+      <div class="result-card ${cls}">
+        <div class="rank-badge">${rank}</div>
+        <div class="alt-name">${medal} ${state.alternatives[i]?.name||'A'+(i+1)}</div>
+        <div class="vi-score">${v.toFixed(4)}</div>
+        <div class="vi-label">Nilai Preferensi (Vi)</div>
+        ${rank===1?`<div style="font-size:12px;color:var(--rank1);margin-top:8px;font-weight:600">★ TERPILIH</div>`:''}
+      </div>`;
+  }).join('');
+}
+
+function renderResultTable(X, R, Y, Apos, Aneg, Dpos, Dneg, Vi, rankOf, W) {
+  const el = document.getElementById('resultTable');
+  const nA = state.nA, nC = state.nC;
+  const topIdx = Vi.indexOf(Math.max(...Vi));
+
+  let html = `<thead><tr>
+    <th>Alt</th>
+    ${state.criteria.map((c,j) => `<th>C${j+1}<br><small style="font-size:10px">${c.name}</small></th>`).join('')}
+    <th>D⁺</th><th>D⁻</th><th>Vi</th><th>Rank</th>
+  </tr></thead><tbody>`;
+
+  for (let i = 0; i < nA; i++) {
+    const cls = i===topIdx ? 'winner-row' : '';
+    html += `<tr class="${cls}">
+      <td style="font-weight:600;color:var(--accent)">${state.alternatives[i]?.name||'A'+(i+1)}</td>
+      ${X[i].map(v => `<td>${v}</td>`).join('')}
+      <td style="font-family:'Space Mono',monospace">${Dpos[i].toFixed(4)}</td>
+      <td style="font-family:'Space Mono',monospace">${Dneg[i].toFixed(4)}</td>
+      <td style="font-family:'Space Mono',monospace;color:var(--accent);font-weight:700">${Vi[i].toFixed(4)}</td>
+      <td style="font-weight:700;color:${rankOf[i]===1?'var(--rank1)':rankOf[i]===2?'var(--rank2)':rankOf[i]===3?'var(--rank3)':'var(--muted)'}">${rankOf[i]}</td>
+    </tr>`;
+  }
+  html += '</tbody>';
+  el.innerHTML = html;
+}
+
+function renderCalcSteps(R, Y, Apos, Aneg, Dpos, Dneg, Vi, W) {
+  const nC = state.nC, nA = state.nA;
+  const el = document.getElementById('calcSteps');
+
+  const fmtRow = (arr) => arr.map(v => v.toFixed(4)).join(' | ');
+
+  el.innerHTML = `
+    <div class="matrix-section">
+      <div class="card" style="background:var(--surface)">
+        <div class="card-title">Langkah 1 — Matriks Ternormalisasi (R)</div>
+        <h4 style="color:var(--muted);margin-bottom:10px">rij = xij / √(Σxij²)</h4>
+        <div class="matrix-wrap">
+          <table>
+            <tr><th>Alt</th>${state.criteria.map((_,j)=>`<th>C${j+1}</th>`).join('')}</tr>
+            ${R.map((row,i) => `<tr><td style="font-weight:600;color:var(--accent)">${state.alternatives[i]?.name||'A'+(i+1)}</td>${row.map(v=>`<td>${v.toFixed(4)}</td>`).join('')}</tr>`).join('')}
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="matrix-section">
+      <div class="card" style="background:var(--surface)">
+        <div class="card-title">Langkah 2 — Matriks Ternormalisasi Terbobot (Y)</div>
+        <h4 style="color:var(--muted);margin-bottom:10px">yij = wj × rij | Bobot: [${W.map(w=>w.toFixed(4)).join(', ')}]</h4>
+        <div class="matrix-wrap">
+          <table>
+            <tr><th>Alt</th>${state.criteria.map((_,j)=>`<th>C${j+1}</th>`).join('')}</tr>
+            ${Y.map((row,i) => `<tr><td style="font-weight:600;color:var(--accent)">${state.alternatives[i]?.name||'A'+(i+1)}</td>${row.map(v=>`<td>${v.toFixed(4)}</td>`).join('')}</tr>`).join('')}
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="matrix-section">
+      <div class="card" style="background:var(--surface)">
+        <div class="card-title">Langkah 3 — Solusi Ideal</div>
+        <div class="matrix-wrap">
+          <table>
+            <tr><th></th>${state.criteria.map((_,j)=>`<th>C${j+1}</th>`).join('')}</tr>
+            <tr><td style="color:var(--green);font-weight:600">A⁺ (Positif)</td>${Apos.map(v=>`<td style="color:var(--green)">${v.toFixed(4)}</td>`).join('')}</tr>
+            <tr><td style="color:var(--red);font-weight:600">A⁻ (Negatif)</td>${Aneg.map(v=>`<td style="color:var(--red)">${v.toFixed(4)}</td>`).join('')}</tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="matrix-section">
+      <div class="card" style="background:var(--surface)">
+        <div class="card-title">Langkah 4 — Jarak & Nilai Preferensi (Vi)</div>
+        <div class="matrix-wrap">
+          <table>
+            <tr><th>Alt</th><th>D⁺ (ke ideal +)</th><th>D⁻ (ke ideal −)</th><th>Vi = D⁻/(D⁺+D⁻)</th></tr>
+            ${Dpos.map((dp,i)=>`<tr><td style="color:var(--accent);font-weight:600">${state.alternatives[i]?.name||'A'+(i+1)}</td><td>${dp.toFixed(4)}</td><td>${Dneg[i].toFixed(4)}</td><td style="font-weight:700;color:var(--accent)">${Vi[i].toFixed(4)}</td></tr>`).join('')}
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ─── UTILITIES ────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function printResult() {
+  window.print();
+}
+
+// ─── INIT ─────────────────────────────────────────────
+window.onload = () => {};
+</script>
+</body>
+</html>

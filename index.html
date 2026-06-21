@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPK SAW — Sistem Penunjang Keputusan</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ── APP MAIN ── -->
+<div class="app-layout visible" id="appMain">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo-icon" id="logoText">SPK</div>
+      <div class="brand-text">
+        <h1 id="brandTitle">SPK</h1>
+        <span>v1.0</span>
+      </div>
+    </div>
+
+    <nav class="step-nav">
+      <div class="nav-label">PROGRESS</div>
+      <div class="step-card active" onclick="goStep(1)" id="s1">
+        <div class="step-num">01</div>
+        <div class="step-info">
+          <div class="step-title">Setup</div>
+          <div class="step-desc">Konfigurasi sistem</div>
+        </div>
+        <div class="step-dot"></div>
+      </div>
+      <div class="step-card" onclick="goStep(2)" id="s2">
+        <div class="step-num">02</div>
+        <div class="step-info">
+          <div class="step-title">Kriteria</div>
+          <div class="step-desc">Daftar kriteria</div>
+        </div>
+        <div class="step-dot"></div>
+      </div>
+      <div class="step-card" onclick="goStep(3)" id="s3">
+        <div class="step-num">03</div>
+        <div class="step-info">
+          <div class="step-title">Alternatif</div>
+          <div class="step-desc">Daftar alternatif</div>
+        </div>
+        <div class="step-dot"></div>
+      </div>
+      <div class="step-card" onclick="goStep(4)" id="s4">
+        <div class="step-num">04</div>
+        <div class="step-info">
+          <div class="step-title">Nilai</div>
+          <div class="step-desc">Matriks keputusan</div>
+        </div>
+        <div class="step-dot"></div>
+      </div>
+      <div class="step-card" onclick="goStep(5)" id="s5">
+        <div class="step-num">05</div>
+        <div class="step-info">
+          <div class="step-title">Hasil</div>
+          <div class="step-desc">Ranking</div>
+        </div>
+        <div class="step-dot"></div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="badge-yellow" id="methodBadge">SPK</div>
+      <div class="footer-text" id="methodFull">Multi-Attribute<br>Decision Making</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <div class="top-bar">
+      <div class="title-pill">
+        <span class="title-num">⚡</span>
+        <h2 id="pageTitle">DECISION SYSTEM</h2>
+      </div>
+      <div class="stats-row">
+        <div class="stat-mini yellow">
+          <div class="stat-mini-val" id="statCriteria">0</div>
+          <div class="stat-mini-lbl">Kriteria</div>
+        </div>
+        <div class="stat-mini cyan">
+          <div class="stat-mini-val" id="statAlt">0</div>
+          <div class="stat-mini-lbl">Alternatif</div>
+        </div>
+        <div class="stat-mini purple">
+          <div class="stat-mini-val" id="statStep">1</div>
+          <div class="stat-mini-lbl">Tahap</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1: SETUP -->
+    <div class="section visible" id="sec1">
+      <div class="bento bento-setup">
+        <div class="bento-card bento-hero yellow">
+          <div class="hero-tag">STEP 01</div>
+          <h3 class="hero-title">Konfigurasi Sistem <span data-method-label></span></h3>
+          <p class="hero-desc">Tentukan jumlah kriteria dan alternatif untuk pengambilan keputusan.</p>
+          <div class="hero-decoration">⚙️</div>
+        </div>
+
+        <div class="bento-card bento-full white explain-card">
+          <label class="section-label">📖 APA ITU METODE SAW?</label>
+          <p><strong>SAW (Simple Additive Weighting)</strong> atau <em>Penjumlahan Terbobot</em> adalah salah satu metode Sistem Penunjang Keputusan (SPK) yang paling sederhana dan populer. Konsep dasarnya: mencari <strong>penjumlahan terbobot</strong> dari rating kinerja setiap alternatif pada semua kriteria.</p>
+          <p>Setiap nilai dinormalisasi dulu agar bisa dibandingkan secara adil, lalu dikalikan dengan bobot kepentingan kriteria. Alternatif dengan <strong>nilai preferensi (V) tertinggi</strong> adalah yang terpilih sebagai keputusan terbaik.</p>
+          <div class="formula-box">
+            Vi = Σ ( wj × rij )
+            <small>Vi = nilai akhir alternatif &nbsp;·&nbsp; wj = bobot kriteria &nbsp;·&nbsp; rij = nilai ternormalisasi</small>
+          </div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="fs-num">1</div>
+              <div class="fs-title">Bobot Kriteria</div>
+              <div class="fs-desc">Tentukan bobot tiap kriteria, lalu dinormalisasi (Σ bobot = 1).</div>
+            </div>
+            <div class="flow-step">
+              <div class="fs-num">2</div>
+              <div class="fs-title">Normalisasi</div>
+              <div class="fs-desc">Ubah matriks keputusan ke skala 0–1 sesuai tipe benefit / cost.</div>
+            </div>
+            <div class="flow-step">
+              <div class="fs-num">3</div>
+              <div class="fs-title">Penjumlahan</div>
+              <div class="fs-desc">Jumlahkan (bobot × nilai) tiap alternatif → ranking.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bento-card white">
+          <label>NAMA SISTEM</label>
+          <input type="text" id="systemName" placeholder="cth: Pemilihan Laptop" />
+        </div>
+
+        <div class="bento-card white">
+          <label>DESKRIPSI</label>
+          <input type="text" id="systemDesc" placeholder="cth: Menentukan laptop terbaik" />
+        </div>
+
+        <div class="bento-card cyan small">
+          <label>JUMLAH KRITERIA</label>
+          <input type="number" id="numCriteria" min="2" max="9" placeholder="4" />
+        </div>
+
+        <div class="bento-card purple small">
+          <label>JUMLAH ALTERNATIF</label>
+          <input type="number" id="numAlternatives" min="2" max="9" placeholder="4" />
+        </div>
+
+        <div class="bento-card info-card green">
+          <div class="info-tag">METODE: <span data-method-label></span></div>
+          Lanjut ke step berikutnya untuk mendefinisikan kriteria penilaian.
+        </div>
+
+        <div class="bento-action">
+          <button class="btn btn-primary" onclick="goStep(2)">Lanjut → Kriteria</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: KRITERIA -->
+    <div class="section" id="sec2">
+      <div class="bento">
+        <div class="bento-card bento-hero cyan">
+          <div class="hero-tag">STEP 02</div>
+          <h3 class="hero-title">Daftar Kriteria</h3>
+          <p class="hero-desc" id="sec2Desc">Definisikan kriteria beserta bobot dan tipe (benefit/cost).</p>
+          <div class="hero-decoration">📋</div>
+        </div>
+
+        <div class="bento-card info-card yellow">
+          <div class="info-tag">TIPS</div>
+          <strong>Benefit ↑</strong> = nilai lebih besar lebih baik<br>
+          <strong>Cost ↓</strong> = nilai lebih kecil lebih baik
+        </div>
+
+        <div class="bento-card bento-full white explain-card">
+          <label class="section-label">💡 PENJELASAN KRITERIA & BOBOT</label>
+          <p><strong>Kriteria</strong> adalah faktor penilaian (mis. harga, kualitas, jarak). <strong>Bobot</strong> menunjukkan seberapa penting kriteria itu — makin besar bobot, makin besar pengaruhnya ke hasil. Bobot tidak harus berjumlah 1; sistem akan menormalisasinya otomatis dengan <span style="font-family:'Space Mono',monospace">wj = bobot ÷ Σ bobot</span>.</p>
+          <p>Setiap kriteria juga punya <strong>tipe</strong> yang menentukan rumus normalisasinya:</p>
+          <div class="formula-box">
+            Benefit:&nbsp; rij = xij / max(xj)
+            <small>nilai besar lebih baik — mis. kualitas, daya tahan, kecepatan</small>
+          </div>
+          <div class="formula-box">
+            Cost:&nbsp; rij = min(xj) / xij
+            <small>nilai kecil lebih baik — mis. harga, berat, waktu, jarak</small>
+          </div>
+        </div>
+
+        <div class="bento-card bento-wide white">
+          <label class="section-label">DAFTAR KRITERIA</label>
+          <div class="criteria-list" id="criteriaList"></div>
+        </div>
+
+        <div class="bento-action">
+          <button class="btn btn-secondary" onclick="goStep(1)">← Kembali</button>
+          <button class="btn btn-primary" onclick="goStep(3)">Lanjut → Alternatif</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: ALTERNATIF -->
+    <div class="section" id="sec3">
+      <div class="bento">
+        <div class="bento-card bento-hero purple">
+          <div class="hero-tag">STEP 03</div>
+          <h3 class="hero-title">Daftar Alternatif</h3>
+          <p class="hero-desc">Daftarkan semua pilihan/opsi yang akan dievaluasi.</p>
+          <div class="hero-decoration">🎯</div>
+        </div>
+
+        <div class="bento-card bento-wide white">
+          <label class="section-label">DAFTAR ALTERNATIF</label>
+          <div class="criteria-list" id="altList"></div>
+        </div>
+
+        <div class="bento-action">
+          <button class="btn btn-secondary" onclick="goStep(2)">← Kembali</button>
+          <button class="btn btn-primary" onclick="goStep(4)">Lanjut → Nilai</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: MATRIX KEPUTUSAN -->
+    <div class="section" id="sec4">
+      <div class="bento">
+        <div class="bento-card bento-hero green">
+          <div class="hero-tag">STEP 04</div>
+          <h3 class="hero-title" id="sec4Hero">Matriks Keputusan</h3>
+          <p class="hero-desc" id="sec4Desc">Isi nilai setiap alternatif untuk setiap kriteria.</p>
+          <div class="hero-decoration">📊</div>
+        </div>
+
+        <div class="bento-card info-card cyan" id="matrixInfo">
+          <div class="info-tag">TIP</div>
+          Gunakan skala konsisten (mis: 1-5 atau nilai aktual) untuk semua kriteria.
+        </div>
+
+        <div class="bento-card bento-full white explain-card">
+          <label class="section-label">📐 PENJELASAN MATRIKS KEPUTUSAN</label>
+          <p><strong>Matriks keputusan (X)</strong> berisi nilai mentah setiap <strong>alternatif</strong> (baris) pada setiap <strong>kriteria</strong> (kolom). Inilah data utama yang akan dihitung.</p>
+          <p>Isi dengan nilai nyata (mis. harga = 8.000.000) atau skala penilaian (mis. 1–5). Tidak masalah satuannya beda antar kolom karena tahap normalisasi akan menyetarakannya. Setelah menekan <strong>HITUNG</strong>, sistem menormalisasi nilai sesuai tipe benefit/cost, mengalikan dengan bobot, lalu menjumlahkannya menjadi nilai preferensi <strong>V</strong>.</p>
+        </div>
+
+        <div class="bento-card bento-full white">
+          <div id="matrixContainer">
+            <div class="matrix-wrap" id="decisionMatrix"></div>
+          </div>
+        </div>
+
+        <div class="bento-action">
+          <button class="btn btn-secondary" onclick="goStep(3)">← Kembali</button>
+          <button class="btn btn-primary calc-btn" onclick="calculate()">⚡ HITUNG <span data-method-label></span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5: HASIL -->
+    <div class="section" id="sec5">
+      <div class="bento">
+        <div class="bento-card bento-hero pink">
+          <div class="hero-tag">STEP 05 ✦ RESULTS</div>
+          <h3 class="hero-title">Hasil Perankingan</h3>
+          <p class="hero-desc">Alternatif terbaik berdasarkan perhitungan metode <span data-method-label></span>.</p>
+          <div class="hero-decoration">🏆</div>
+        </div>
+
+        <div class="bento-card bento-full white explain-card">
+          <label class="section-label">🧭 CARA MEMBACA HASIL</label>
+          <p>Alternatif diurutkan dari <strong>nilai preferensi (V) tertinggi</strong> ke terendah. Alternatif <strong>peringkat 1</strong> (★ TERPILIH) adalah keputusan terbaik menurut metode SAW. Nilai V berkisar 0–1; makin mendekati 1 makin unggul.</p>
+          <p>Bagian <strong>Proses Perhitungan</strong> di bawah menampilkan tiap langkah: bobot ternormalisasi, matriks ternormalisasi (R), hingga rincian penjumlahan <span style="font-family:'Space Mono',monospace">Vi = Σ (wj × rij)</span> — supaya hasilnya bisa ditelusuri dan diverifikasi.</p>
+        </div>
+
+        <div class="bento-card bento-full transparent">
+          <label class="section-label">🏆 RANKING ALTERNATIF</label>
+          <div id="resultCards" class="result-grid"></div>
+        </div>
+
+        <div class="bento-card bento-full white">
+          <label class="section-label">📊 TABEL LENGKAP</label>
+          <div class="matrix-wrap">
+            <table id="resultTable"></table>
+          </div>
+        </div>
+
+        <div class="bento-card bento-full transparent">
+          <label class="section-label">🔬 PROSES PERHITUNGAN</label>
+          <div id="calcSteps"></div>
+        </div>
+
+        <div class="bento-action">
+          <button class="btn btn-secondary" onclick="goStep(4)">← Edit</button>
+          <button class="btn btn-primary" onclick="printResult()">🖨 Cetak</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+</div>
+
+<div id="toast">✓ Berhasil!</div>
+
+<script src="js/state.js"></script>
+<script src="js/app.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/saw.js"></script>
+
+</body>
+</html>
